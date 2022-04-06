@@ -14,7 +14,7 @@ describe('Order Entry page', () => {
 	)
 
 	it('should handle errors for scoops and topping routes', async () => {
-		render(<OrderEntry />)
+		render(<OrderEntry setOrderPhase={jest.fn()}/>)
 
 		await waitFor(async () => {
 			const alerts = await screen.findAllByRole('alert')
