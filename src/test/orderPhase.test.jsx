@@ -1,4 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import {
+	render,
+	screen,
+	waitForElementToBeRemoved
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import App from '../App'
@@ -71,12 +75,23 @@ describe('APP', () => {
 		})
 		userEvent.click(confirmOrderButton)
 
+		// Wait to disappear loading
+		// await waitForElementToBeRemoved(() => screen.queryByText(/loading/i))
+
+		// Expect loading in the screen
+		const loading = screen.getByText(/loading/i)
+		expect(loading).toBeInTheDocument()
+
 		// Confirm order number on confirmation page
 		// async call POST
 		const thankYouHeader = await screen.findByRole('heading', {
 			name: /thank you/i
 		})
 		expect(thankYouHeader).toBeInTheDocument()
+
+		// Expect loading disappear
+		const notLoading = screen.queryByText(/loading/i)
+		expect(notLoading).not.toBeInTheDocument()
 
 		const orderNumber = await screen.findByText(/order number/i)
 		expect(orderNumber).toBeInTheDocument()
@@ -97,5 +112,33 @@ describe('APP', () => {
 		// Wait for items to appear in the page
 		await screen.findByRole('spinbutton', { name: 'Vanilla' })
 		await screen.findByRole('checkbox', { name: 'Cherries' })
+	})
+
+	it('should not show the toppings if no selected', async () => {
+		// Render App
+		render(<App />)
+
+		// Add ice cream scoops
+		const vanillaInput = await screen.findByRole('spinbutton', {
+			name: 'Vanilla'
+		})
+		userEvent.clear(vanillaInput)
+		userEvent.type(vanillaInput, '2')
+
+		// Find and click order summary button
+		const orderSummaryButton = screen.getByRole('button', {
+			name: /order sundae/i
+		})
+		userEvent.click(orderSummaryButton)
+
+		const scoopsHeading = screen.getByRole('heading', {
+			name: 'Scoops: $4.00'
+		})
+		expect(scoopsHeading).toBeInTheDocument()
+
+		const notToppingsHeading = screen.queryByRole('heading', {
+			name: /toppings/i
+		})
+		expect(notToppingsHeading).not.toBeInTheDocument()
 	})
 })
